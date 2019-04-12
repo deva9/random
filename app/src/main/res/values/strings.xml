@@ -1,0 +1,17 @@
+<resources>
+    <string name="app_name">Product Search</string>
+
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
+    <string-array name="category_array">
+        <item>All</item>
+        <item>Art</item>
+        <item>Baby</item>
+        <item>Books</item>
+        <item>Clothing,Shoes &amp; Accessories</item>
+        <item>Computers,Tablets &amp; Networking</item>
+        <item>Health &amp; Beauty</item>
+        <item>Music</item>
+        <item>Video games &amp; Consoles</item>
+    </string-array>
+</resources>
