@@ -1,11 +1,18 @@
 package com.mycompany.ebayapp;
 
 
+import android.content.Intent;
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Message;
 import android.support.v4.app.Fragment;
+import android.text.Editable;
+import android.text.TextUtils;
+import android.text.TextWatcher;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.AdapterView;
 import android.widget.ArrayAdapter;
 import android.widget.AutoCompleteTextView;
 import android.widget.Button;
@@ -16,6 +23,17 @@ import android.widget.RadioButton;
 import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
+
+import com.android.volley.Request;
+import com.android.volley.RequestQueue;
+import com.android.volley.Response;
+import com.android.volley.VolleyError;
+import com.android.volley.toolbox.JsonObjectRequest;
+import com.android.volley.toolbox.Volley;
+
+import org.json.JSONArray;
+import org.json.JSONException;
+import org.json.JSONObject;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -32,7 +50,9 @@ public class SearchTab extends Fragment implements View.OnClickListener {
     TextView keyerr, ziperr;
     Button submit, clr;
     RadioButton rb1, rb2;
+    AutosuggestAdapter autosuggestAdapter;
     LinearLayout idk;
+    Handler handler;
     String distance = "10";
     boolean newc = false, usedc = false, unspec = false;
     boolean local = false, free = false, okay = true;
@@ -52,6 +72,66 @@ public class SearchTab extends Fragment implements View.OnClickListener {
             @Override
             public void onClick(View view1) {
                 init(view);
+            }
+        });
+
+        zip.setThreshold(1);
+        zip.setAdapter(autosuggestAdapter);
+        autosuggestAdapter = new AutosuggestAdapter(this.getContext(), android.R.layout.simple_dropdown_item_1line);
+        zip.setOnItemClickListener(new AdapterView.OnItemClickListener() {
+            @Override
+            public void onItemClick(AdapterView<?> parent, View view, int position, long id) {
+                autosuggestAdapter.getObject(position);
+            }
+        });
+        zip.addTextChangedListener(new TextWatcher() {
+            @Override
+            public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
+
+            @Override
+            public void onTextChanged(CharSequence s, int start, int before, int count) {
+                handler.removeMessages(100);
+                handler.sendEmptyMessageDelayed(100, 200);
+            }
+            @Override
+            public void afterTextChanged(Editable s) {}
+        });
+
+        handler = new Handler(new Handler.Callback() {
+            @Override
+            public boolean handleMessage(Message msg) {
+                if (msg.what == 100) {
+                    if (!TextUtils.isEmpty(zip.getText())) {
+                        RequestQueue requestQueue = Volley.newRequestQueue(getContext());
+                        String zip_url = "http://api.geonames.org/postalCodeSearchJSON?postalcode_startsWith="
+                                + zip.getText().toString() + "&username=devanshgada&country=US&maxRows=5";
+                        JsonObjectRequest jsonObjectRequest = new JsonObjectRequest
+                                (Request.Method.GET, zip_url, null, new Response.Listener<JSONObject>() {
+                            @Override
+                            public void onResponse(JSONObject response) {
+                                List<String> stringList = new ArrayList<>();
+                                try{
+                                    if(response.has("postalCodes")){
+                                        JSONArray suggestions = response.getJSONArray("postalCodes");
+                                        for(int i = 0; i < suggestions.length(); i++)
+                                            stringList.add(suggestions.getJSONObject(i).getString("postalCode"));
+                                        System.out.println(stringList);
+                                    }
+                                }
+                                catch (JSONException e){
+                                    e.printStackTrace();
+                                }
+                                autosuggestAdapter.setData(stringList);
+                                autosuggestAdapter.notifyDataSetChanged();
+                            }
+                        },new Response.ErrorListener() {
+                                    @Override
+                                    public void onErrorResponse(VolleyError error) { }
+                                });
+                        requestQueue.add(jsonObjectRequest);
+                    }
+                }
+                return false;
             }
         });
         return view;
@@ -95,21 +175,24 @@ public class SearchTab extends Fragment implements View.OnClickListener {
                 if(!okay)
                     Toast.makeText(this.getContext(), "Please fix all fields with errors", Toast.LENGTH_SHORT).show();
                 else{
-                    urlbana(keyword, val, zipcode);
-//                    Toast.makeText(this.getContext(), url_1, Toast.LENGTH_SHORT).show();
+                    urlBana(keyword, val, zipcode);
                     System.out.println(url_1);
+                    Intent intent = new Intent(this.getContext(),ResultsActivity.class);
+                    intent.putExtra("URL",url_1);
+                    startActivity(intent);
                 }
                 break;
         }
     }
 
-    public void urlbana(String keyword, String val, String zipcode){
+    public void urlBana(String keyword, String val, String zipcode){
+        url_1 = "http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsAdvanced&SERVICE-VERSION=1.0.0&SECURITY-APPNAME=DevanshG-PHPassig-PRD-116e2f5cf-92aba82e&RESPONSE-DATA-FORMAT=JSON&REST-PAYLOAD&paginationInput.entriesPerPage=50&keywords=";
         int k = 0;
         url_1 += keyword;
         if(val!="0")
             url_1 += "&categoryId="+val;
         url_1 += "&buyerPostalCode="+zipcode;
-        if(dist.getText().toString()!="")
+        if(!dist.getText().toString().equals("") && dist.getText().toString().trim().length()>0)
             distance = dist.getText().toString();
         url_1 += "&itemFilter("+k+").name=MaxDistance&itemFilter("+(k++)+").value="+distance;
         if(free)
@@ -168,7 +251,5 @@ public class SearchTab extends Fragment implements View.OnClickListener {
         ArrayAdapter<String> categoryAd = new ArrayAdapter<>(this.getContext(), android.R.layout.simple_spinner_item, categories);
         categoryAd.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
         spinner.setAdapter(categoryAd);
-
-        url_1 = "http://svcs.ebay.com/services/search/FindingService/v1?OPERATION-NAME=findItemsAdvanced&SERVICE-VERSION=1.0.0&SECURITY-APPNAME=DevanshG-PHPassig-PRD-116e2f5cf-92aba82e&RESPONSE-DATA-FORMAT=JSON&REST-PAYLOAD&paginationInput.entriesPerPage=50&keywords=";
     }
 }

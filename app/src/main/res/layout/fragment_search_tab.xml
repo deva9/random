@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical">
@@ -153,8 +154,11 @@
                 android:layout_width="180sp"
                 android:layout_height="wrap_content"
                 android:textSize="15sp"
+                android:inputType="text"
+                android:layoutDirection="ltr"
                 android:hint="zipcode"
                 android:enabled="false"
+                android:maxLines="5"
                 android:id="@+id/zipauto"/>
         </LinearLayout>
         <TextView
