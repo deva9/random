@@ -179,6 +179,7 @@ public class SearchTab extends Fragment implements View.OnClickListener {
                     System.out.println(url_1);
                     Intent intent = new Intent(this.getContext(),ResultsActivity.class);
                     intent.putExtra("URL",url_1);
+                    intent.putExtra("KEYWORD",keyword);
                     startActivity(intent);
                 }
                 break;
