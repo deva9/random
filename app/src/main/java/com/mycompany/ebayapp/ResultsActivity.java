@@ -26,7 +26,7 @@ import org.json.JSONObject;
 
 import java.util.ArrayList;
 
-public class ResultsActivity extends AppCompatActivity implements CardAdapter.ItemListener {
+public class ResultsActivity extends AppCompatActivity implements ItemClickListener {
 
     ProgressBar progressBar;
     TextView textView,nores,number;
@@ -51,9 +51,13 @@ public class ResultsActivity extends AppCompatActivity implements CardAdapter.It
         nores = findViewById(R.id.noresults);
         number = findViewById(R.id.number);
         nores.setVisibility(View.GONE);
+        list = new ArrayList<>();
         recyclerView = findViewById(R.id.recycler);
         gridLayoutManager = new GridLayoutManager(getBaseContext(),2);
         recyclerView.setLayoutManager(gridLayoutManager);
+        CardAdapter cardAdapter = new CardAdapter(context,list);
+        recyclerView.setAdapter(cardAdapter);
+        cardAdapter.setClickListener(this);
         Intent intent = getIntent();
         progressBar.setVisibility(View.VISIBLE);
         url_1 = intent.getStringExtra("URL");
@@ -82,7 +86,6 @@ public class ResultsActivity extends AppCompatActivity implements CardAdapter.It
                             if(success == null || !success.equals("Success") || Integer.parseInt(count)<1 || temp == null)
                                 nores.setVisibility(View.VISIBLE);
                             else {
-                                list = new ArrayList<>();
                                 String setter = "Showing  <font color='#fd572f'>"+count+"</font>  results for  <font color='#fd572f'>"+keyword+"</font>";
                                 number.setVisibility(View.VISIBLE);
                                 number.setText(Html.fromHtml(setter),TextView.BufferType.SPANNABLE);
@@ -90,22 +93,26 @@ public class ResultsActivity extends AppCompatActivity implements CardAdapter.It
                                 System.out.println(items.get(0));
                                 for(int i = 0;i < items.length(); i++){
                                     JSONObject cur = (JSONObject) items.get(i);
-                                    String id = (cur.has("itemId"))?cur.getJSONArray("itemId").getString(0):null;
-                                    String image = (cur.has("galleryURL"))?cur.getJSONArray("galleryURL").getString(0):null;
-                                    String title = (cur.has("title"))?cur.getJSONArray("title").getString(0):null;
-                                    String postal_code = (cur.has("postalCode"))?cur.getJSONArray("postalCode").getString(0):null;
-                                    String condition = null, cost = null;
+                                    String id = (cur.has("itemId"))?cur.getJSONArray("itemId").getString(0):"N/A";
+                                    String image = (cur.has("galleryURL"))?cur.getJSONArray("galleryURL").getString(0):"N/A";
+                                    String title = (cur.has("title"))?cur.getJSONArray("title").getString(0):"N/A";
+                                    String postal_code = (cur.has("postalCode"))?cur.getJSONArray("postalCode").getString(0):"N/A";
+                                    String condition = "N/A", cost = "N/A", price = "N/A";
                                     if(cur.has("condition") && cur.getJSONArray("condition").getJSONObject(0).has("conditionDisplayName"))
                                         condition = cur.getJSONArray("condition").getJSONObject(0).getJSONArray("conditionDisplayName").getString(0);
                                     JSONArray ship = (cur.has("shippingInfo"))?cur.getJSONArray("shippingInfo"):null;
                                     if(ship!=null && ship.getJSONObject(0).has("shippingServiceCost") && ship.getJSONObject(0).getJSONArray("shippingServiceCost").getJSONObject(0).has("__value__"))
                                         cost = ship.getJSONObject(0).getJSONArray("shippingServiceCost").getJSONObject(0).get("__value__").toString();
+                                    if(cost.equals("0.0"))
+                                        cost = "Free Shipping";
                                     JSONArray seller = (cur.has("sellingStatus"))?cur.getJSONArray("sellingStatus"):null;
-                                    String returns = (cur.has("returnsAccepted"))?cur.getString("returnsAccepted"):null;
-//                                    System.out.println(id + title + image + postal_code +"\n"+ ship + seller + returns);
+                                    if(cur.has("sellingStatus") && cur.getJSONArray("sellingStatus").getJSONObject(0).has("currentPrice") && cur.getJSONArray("sellingStatus").getJSONObject(0).getJSONArray("currentPrice").getJSONObject(0).has("__value__"))
+                                        price = cur.getJSONArray("sellingStatus").getJSONObject(0).getJSONArray("currentPrice").getJSONObject(0).get("__value__").toString();
+//                                    String returns = (cur.has("returnsAccepted"))?cur.getString("returnsAccepted"):"N/A";
+//                                    System.out.println(id + title + image + postal_code +"\n"+ ship + seller);
 //                                    System.out.println(cost);
                                     // Do something here
-                                    ItemData cur_item = new ItemData(id,title,postal_code,cost,condition,seller,ship);
+                                    ItemData cur_item = new ItemData(id,image,title,price,postal_code,cost,condition,seller,ship);
                                     list.add(cur_item);
                                 }
                             }
@@ -113,8 +120,7 @@ public class ResultsActivity extends AppCompatActivity implements CardAdapter.It
                             System.out.println("----------------------------");
                             e.printStackTrace();
                         }
-                        CardAdapter cardAdapter = new CardAdapter(context,list);
-                        recyclerView.setAdapter(cardAdapter);
+//                        cardAdapter.setClickListener();
                     }
                 },
                 new Response.ErrorListener(){
@@ -129,8 +135,12 @@ public class ResultsActivity extends AppCompatActivity implements CardAdapter.It
     }
 
     @Override
-    public void onItemClick(ItemData item) {
-        Toast.makeText(getApplicationContext(), item.title + " is clicked", Toast.LENGTH_SHORT).show();
+    public void onItemClick(View v, int position) {
+        ItemData item = list.get(position);
+        Intent intent = new Intent(this, ProductDetails.class);
+        intent.putExtra("ID",item.id);
+        intent.putExtra("Title",item.title);
+        startActivity(intent);
 
     }
     @Override

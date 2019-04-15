@@ -19,22 +19,24 @@
             android:id="@+id/itemimage"
             android:layout_width="match_parent"
             android:layout_height="150dp"
-            android:padding="5dp"/>
+            android:layout_margin="5dp"/>
 
         <TextView
             android:id="@+id/itemtitle"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:gravity="center"
-            android:textSize="18sp"
-            android:padding="5dp"
+            android:textSize="16sp"
+            android:layout_margin="5dp"
+            android:maxLines="4"
             android:text="Title"
             android:textStyle="bold"/>
+
         <RelativeLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:orientation="horizontal"
-            android:padding="5dp">
+            android:layout_margin="10dp">
             <LinearLayout
                 android:layout_alignParentLeft="true"
                 android:layout_width="wrap_content"
@@ -52,21 +54,26 @@
                     android:text="Shipping cost"/>
             </LinearLayout>
 
-            <ImageButton
-                android:layout_width="wrap_content"
-                android:layout_height="wrap_content"
+            <ImageView
+                android:id="@+id/itemwish"
+                android:layout_width="35dp"
+                android:layout_height="35dp"
                 android:textAlignment="viewEnd"
+                android:src="@drawable/ic_add"
                 android:layout_alignParentRight="true"/>
         </RelativeLayout>
         <RelativeLayout
             android:layout_width="match_parent"
-            android:layout_height="wrap_content">
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="3dp"
+            android:layout_marginLeft="3dp"
+            android:layout_marginRight="3dp">
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
                     android:id="@+id/itemcondition"
                     android:text="Condition"
-                    android:layout_alignParentLeft="true"/>
+                    android:layout_alignParentLeft="true" />
                 <TextView
                     android:layout_width="wrap_content"
                     android:layout_height="wrap_content"
